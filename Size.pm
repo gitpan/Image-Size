@@ -13,6 +13,7 @@ package Image::Size;
 require 5.002;
 
 use strict;
+use Cwd 'cwd';
 use Symbol;
 use AutoLoader 'AUTOLOAD';
 use Exporter;
@@ -24,21 +25,18 @@ use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $revision $VERSION
 @EXPORT_OK   = qw(imgsize html_imgsize attr_imgsize);
 %EXPORT_TAGS = ('all' => [@EXPORT_OK]);
 
-$revision    = q$Id: Size.pm,v 1.14 1999/03/10 08:02:47 rjray Exp $;
-$VERSION     = "2.901";
+$revision    = q$Id: Size.pm,v 1.17 2000/04/26 07:21:04 rjray Exp $;
+$VERSION     = "2.902";
 
 # Package lexicals - invisible to outside world, used only in imgsize
 #
 # Cache of files seen, and mapping of patterns to the sizing routine
 my %cache = ();
 
-# Try to catch the variants of eol-indicators for the sake of PPM family
-my $end = (($^O =~ /Win32/i) ? '\015' :
-           ($^O =~ /MacOS/i) ? '\r' : '\n');
 my %type_map = ( '^GIF8[7,9]a'              => \&gifsize,
                  "^\xFF\xD8"                => \&jpegsize,
                  "^\x89PNG\x0d\x0a\x1a\x0a" => \&pngsize,
-                 "^P[1-6]$end"              => \&ppmsize,
+                 "^P[1-7]"                  => \&ppmsize, # also XVpics
                  '\#define\s+\S+\s+\d+'     => \&xbmsize,
                  '\/\* XPM \*\/'            => \&xpmsize,
                  '^MM\x00\x2a'              => \&tiffsize,
@@ -93,7 +91,7 @@ sub imgsize
     my $stream = shift;
 
     my ($handle, $header);
-    my ($x, $y, $id);
+    my ($x, $y, $id, $mtime, @list);
     # These only used if $stream is an existant open FH
     my ($save_pos, $need_restore) = (0, 0);
 
@@ -133,9 +131,16 @@ sub imgsize
     }
     else
     {
-        if (-e "$stream" && exists $cache{$stream})
+        $stream = cwd . "/$stream" unless ($stream =~ m|^/|);
+        $mtime = (stat $stream)[9];
+        if (-e "$stream" and exists $cache{$stream})
         {
-            return (split(/,/, $cache{$stream}));
+            @list = split(/,/, $cache{$stream}, 4);
+
+            # Don't return the cache if the file is newer.
+            return @list[1 .. 3] unless ($list[0] < $mtime);
+            # In fact, clear it
+            delete $cache{$stream};
         }
 
         #first try to open the stream
@@ -167,7 +172,8 @@ sub imgsize
     # Added as an afterthought: I'm probably not the only one who uses the
     # same shaded-sphere image for several items on a bulleted list:
     #
-    $cache{$stream} = join(',', $x, $y) unless (ref $stream or (! defined $x));
+    $cache{$stream} = join(',', $mtime, $x, $y, $id)
+        unless (ref $stream or (! defined $x));
 
     #
     # If we were passed an existant file handle, we need to restore the
@@ -183,8 +189,9 @@ sub html_imgsize
 {
     my @args = imgsize(@_);
 
+    # Use lowercase and quotes so that it works with xhtml.
     return ((defined $args[0]) ?
-            sprintf("WIDTH=%d HEIGHT=%d", @args) :
+            sprintf('width="%d" height="%d"', @args) :
             undef);
 }
 
@@ -193,7 +200,7 @@ sub attr_imgsize
     my @args = imgsize(@_);
 
     return ((defined $args[0]) ?
-            (('-WIDTH', '-HEIGHT', imgsize(@_))[0, 2, 1, 3]) :
+            (('-width', '-height', @args)[0, 2, 1, 3]) :
             undef);
 }
 
@@ -312,7 +319,7 @@ sub gifsize
             }
         }
         else
-        { 
+        {
             return (undef, undef,
                     sprintf("Invalid/Corrupted GIF (Unknown code %#x)",
                             $x));
@@ -328,7 +335,7 @@ sub xbmsize
     my ($x, $y, $id) = (undef, undef, "Could not determine XBM size");
 
     $input = &$read_in($stream, 1024);
-    if ($input =~ /^\#define\s*\S*\s*(\d*)\s*\n\#define\s*\S*\s*(\d*)\s*\n/moi)
+    if ($input =~ /^\#define\s*\S*\s*(\d+)\s*\n\#define\s*\S*\s*(\d+)/si)
     {
         ($x, $y) = ($1, $2);
         $id = 'XBM';
@@ -350,7 +357,7 @@ sub xpmsize
 
     while ($line = &$read_in($stream, 1024))
     {
-        next unless ($line =~ /"\s*(\d+)\s+(\d+)(\s+\d+\s+\d+){1,2}\s*"/mo);
+        next unless ($line =~ /"\s*(\d+)\s+(\d+)(\s+\d+\s+\d+){1,2}\s*"/s);
         ($x, $y) = ($1, $2);
         $id = 'XPM';
         last;
@@ -387,7 +394,7 @@ sub pngsize
 # jpegsize: gets the width and height (in pixels) of a jpeg file
 # Andrew Tong, werdna@ugcs.caltech.edu           February 14, 1995
 # modified slightly by alex@ed.ac.uk
-# and further still by rjray@uswest.com
+# and further still by rjray@tsoft.com
 # optimization and general re-write from tmetro@vl.com
 sub jpegsize
 {
@@ -453,10 +460,16 @@ sub ppmsize
 
     # PPM file of some sort
     $header =~ s/^\#.*//mg;
-    ($n, $x, $y) = ($header =~ /^(P[1-6])\s+(\d+)\s+(\d+)/mo);
+    ($n, $x, $y) = ($header =~ /^(P[1-6])\s+(\d+)\s+(\d+)/s);
     $id = "PBM" if $n eq "P1" || $n eq "P4";
     $id = "PGM" if $n eq "P2" || $n eq "P5";
     $id = "PPM" if $n eq "P3" || $n eq "P6";
+    if ($n eq 'P7')
+    {
+        # John Bradley's XV thumbnail pics (thanks to inwap@jomis.Tymnet.COM)
+        $id = 'XV';
+        ($x, $y) = ($header =~ /IMGINFO:(\d+)x(\d+)/s);
+    }
 
     ($x, $y, $id);
 }
@@ -563,14 +576,14 @@ Image::Size - read the dimensions of an image in several popular formats
     # Assume X=60 and Y=40 for remaining examples
 
     use Image::Size 'html_imgsize';
-    # Get the size as "HEIGHT=X WIDTH=Y" for HTML generation
+    # Get the size as 'width="X" height="Y"' for HTML generation
     $size = html_imgsize("globe.gif");
-    # $size == "HEIGHT=40 WIDTH=60"
+    # $size == 'width="60" height="40"'
 
     use Image::Size 'attr_imgsize';
     # Get the size as a list passable to routines in CGI.pm
     @attrs = attr_imgsize("globe.gif");
-    # @attrs == ('-HEIGHT', 40, '-WIDTH', 60)
+    # @attrs == ('-width', 60, '-height', 40)
 
     use Image::Size;
     # Get the size of an in-memory buffer
@@ -579,8 +592,8 @@ Image::Size - read the dimensions of an image in several popular formats
 =head1 DESCRIPTION
 
 The B<Image::Size> library is based upon the C<wwwis> script written by
-Alex Knowles I<(alex@ed.ac.uk)>, a tool to examine HTML and add HEIGHT and
-WIDTH parameters to image tags. The sizes are cached internally based on
+Alex Knowles I<(alex@ed.ac.uk)>, a tool to examine HTML and add 'width' and
+'height' parameters to image tags. The sizes are cached internally based on
 file name, so multiple calls on the same file name (such as images used
 in bulleted lists, for example) do not result in repeated computations.
 
@@ -599,15 +612,16 @@ sizing data whose type is unknown.
 =item html_imgsize(I<stream>)
 
 Returns the width and height (X and Y) of I<stream> pre-formatted as a single
-string C<"HEIGHT=X WIDTH=Y"> suitable for addition into generated HTML IMG
-tags. If the underlying call to C<imgsize> fails, B<undef> is returned.
+string C<'width="X" height="Y"'> suitable for addition into generated HTML IMG
+tags. If the underlying call to C<imgsize> fails, B<undef> is returned. The
+format returned should be dually suited to both HTML and XHTML.
 
 =item attr_imgsize(I<stream>)
 
 Returns the width and height of I<stream> as part of a 4-element list useful
 for routines that use hash tables for the manipulation of named parameters,
 such as the Tk or CGI libraries. A typical return value looks like
-C<("-HEIGHT", Y, "-WIDTH", X)>. If the underlying call to C<imgsize> fails,
+C<("-width", X, "-height", Y)>. If the underlying call to C<imgsize> fails,
 B<undef> is returned.
 
 =back
@@ -708,6 +722,35 @@ error message.
 
 The other two routines simply return B<undef> in the case of error.
 
+=head1 MORE EXAMPLES
+
+The B<attr_imgsize> interface is also well-suited to use with the Tk
+extension:
+
+    $image = $widget->Photo(-file => $img_path, attr_imgsize($img_path));
+
+Since the C<Tk::Image> classes use dashed option names as C<CGI> does, no
+further translation is needed.
+
+This package is also well-suited for use within an Apache web server context.
+File sizes are cached upon read (with a check against the modified time of
+the file, in case of changes), a useful feature for a B<mod_perl> environment
+in which a child process endures beyond the lifetime of a single request.
+Other aspects of the B<mod_perl> environment cooperate nicely with this
+module, such as the ability to use a sub-request to fetch the full pathname
+for a file within the server space. This complements the HTML generation
+capabilities of the B<CGI> module, in which C<CGI::img> wants a URL but
+C<attr_imgsize> needs a file path:
+
+    # Assume $Q is an object of class CGI, $r is an Apache request object.
+    # $imgpath is a URL for something like "/img/redball.gif".
+    $r->print($Q->img({ -src => $imgpath,
+                        attr_imgsize($r->lookup_uri($imgpath)->filename) }));
+
+The advantage here, besides not having to hard-code the server document root,
+is that Apache passes the sub-request through the usual request lifecycle,
+including any stages that would re-write the URL or otherwise modify it.
+
 =head1 CAVEATS
 
 Caching of size data can only be done on inputs that are file names. Open
@@ -723,7 +766,7 @@ and how to obtain it.
 
 =head1 AUTHORS
 
-Perl module interface by Randy J. Ray I<(rjray@uswest.com)>, original
+Perl module interface by Randy J. Ray I<(rjray@tsoft.com)>, original
 image-sizing code by Alex Knowles I<(alex@ed.ac.uk)> and Andrew Tong
 I<(werdna@ugcs.caltech.edu)>, used with their joint permission.
 
@@ -735,6 +778,8 @@ I<(dvk@lonewolf.com)> contributed a re-write of the GIF code.  Cloyce Spradling
 I<(cloyce@headgear.org)> contributed TIFF sizing code and test images. Aldo
 Calpini I<(a.calpini@romagiubileo.it)> suggested support of BMP images (which
 I I<really> should have already thought of :-) and provided code to work
-with.
+with. A patch to allow html_imgsize to produce valid output for XHTML, as
+well as some documentation fixes was provided by Charles Levert
+I<(charles@comm.polymtl.ca)>.
 
 =cut
