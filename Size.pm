@@ -25,7 +25,7 @@ use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $revision $VERSION
 %EXPORT_TAGS = ('all' => [@EXPORT_OK]);
 
 $revision    = q$Id: Size.pm,v 1.14 1999/03/10 08:02:47 rjray Exp $;
-$VERSION     = "2.10";
+$VERSION     = "2.901";
 
 # Package lexicals - invisible to outside world, used only in imgsize
 #
