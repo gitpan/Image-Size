@@ -23,8 +23,8 @@ print (($attrs[1] == 64 && $attrs[3] == 38) ? "ok 3\n" : "not ok 3\n");
 ($x, $y) = imgsize("${dir}spacer50.xbm");
 print (($x == 50 && $y == 10) ? "ok 4\n" : "not ok 4\n");
 
-($x, $y) = imgsize("some non-existant file");
-print (($y =~ /can\'t open/oi) ? "ok 5\n" : "not ok 5\n");
+($x, $y, $err) = imgsize("some non-existant file");
+print (($err =~ /can\'t open/oi) ? "ok 5\n" : "not ok 5\n");
 
 # Dave is actually a valid GIF, but this should work:
 ($x, $y) = imgsize("${dir}dave.jpg");

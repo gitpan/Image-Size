@@ -70,10 +70,10 @@ how many others are using this will help promote its upkeep.)
 
 CREDITS AND LICENSES
 
-This package is copyright © 1996 by Randy Ray (rjray@uswest.com) and is
-placed in the public domain under terms of the Artistic License used to
-cover Perl itself. See the file Artistic in the distribution  of Perl 5.002 or
-later for details of copy and distribution terms.
+This package is copyright © 1996 by Randy Ray (rjray@uswest.com) and may be
+distributed under terms of the Artistic License used to cover Perl itself.
+See the file Artistic in the distribution  of Perl 5.002 or later for details
+of copy and distribution terms.
 
 Perl module interface by Randy J. Ray (rjray@uswest.com), original
 image-sizing code by Alex Knowles (alex@ed.ac.uk) and Andrew Tong

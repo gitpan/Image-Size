@@ -61,23 +61,24 @@ B<Image::Size> provides three interfaces for possible import:
 =item imgsize(I<stream>)
 
 Returns a three-item list of the X and Y dimensions (height and width, in
-that order) and image type of I<stream>. Errors are noted by a -1 value for
-the first element, and an error string for the second. The third element can
-be (and usually is) ignored, but is useful when sizing data whose type is
-unknown.
+that order) and image type of I<stream>. Errors are noted by undefined
+B<undef> value for the first two elements, and an error string in the third.
+The third element can be (and usually is) ignored, but is useful when
+sizing data whose type is unknown.
 
 =item html_imgsize(I<stream>)
 
 Returns the height and width (X and Y) of I<stream> pre-formatted as a single
 string C<"HEIGHT=X WIDTH=Y"> suitable for addition into generated HTML IMG
-tags.
+tags. If the underlying call to C<imgsize> fails, B<undef> is returned.
 
 =item attr_imgsize(I<stream>)
 
 Returns the height and width of I<stream> as part of a 4-element list useful
 for routines that use hash tables for the manipulation of named parameters,
 such as the Tk or CGI libraries. A typical return value looks like
-C<("-HEIGHT", X, "-WIDTH", Y)>.
+C<("-HEIGHT", X, "-WIDTH", Y)>. If the underlying call to C<imgsize> fails,
+B<undef> is returned.
 
 =back
 
@@ -163,12 +164,11 @@ use it must use the base C<imgsize> routine.
 
 =head1 DIAGNOSTICS
 
-The base routine, C<imgsize>, returns a -1 as the first value in its list
-when an error has occured. The second return element contains a descriptive
+The base routine, C<imgsize>, returns B<undef> as the first value in its list
+when an error has occured. The third element contains a descriptive
 error message.
 
-The second and third forms blindly format the returned data of C<imgsize>,
-and as such may return corrupted data in the event of an error.
+The other two routines simply return B<undef> in the case of error.
 
 =head1 CAVEATS
 
@@ -215,8 +215,8 @@ use vars qw($revision $VERSION $read_in $last_pos);
 @Image::Size::EXPORT_OK   = qw(imgsize html_imgsize attr_imgsize);
 %Image::Size::EXPORT_TAGS = (q/all/ => [@Image::Size::EXPORT_OK]);
 
-$Image::Size::revision    = q$Id: Size.pm,v 1.4 1996/11/25 21:16:37 rjray Exp $;
-$Image::Size::VERSION     = "2.0";
+$Image::Size::revision    = q$Id: Size.pm,v 1.4 1996/11/29 23:18:55 rjray Exp $;
+$Image::Size::VERSION     = "2.1";
 
 # Package lexicals - invisible to outside world, used only in imgsize
 #
@@ -313,12 +313,8 @@ sub imgsize
 
         #first try to open the stream
         $handle = new IO::File "< $stream";
-        unless (defined $handle)
-        {
-            $y = "Can't open image file $stream: $!";
-            $x = -1;
-            return ($x, $y);
-        }
+        return (undef, undef, "Can't open image file $stream: $!")
+            unless (defined $handle);
 
         read $handle, $header, 80;
         $handle->seek(0, 0);
@@ -331,8 +327,9 @@ sub imgsize
     # the grep() below matches the data to one of the known types, then the
     # called subroutine will override these...
     #
-    $y = "Data stream is not gif, xbm, xpm, jpeg, png, ppm, pgm or pbm";
-    $x = -1;
+    $id = "Data stream is not gif, xbm, xpm, jpeg, png, ppm, pgm or pbm";
+    $x  = undef;
+    $y  = undef;
 
     grep($header =~ /^$_/ && (($x, $y, $id) = &{$type_map{$_}}($handle)),
          keys %type_map);
@@ -355,12 +352,20 @@ sub imgsize
 
 sub html_imgsize
 {
-    return sprintf("WIDTH=%d HEIGHT=%d", imgsize(@_));
+    my @args = imgsize(@_);
+
+    return ((defined $args[0]) ?
+            sprintf("WIDTH=%d HEIGHT=%d", @args) :
+            undef);
 }
 
 sub attr_imgsize
 {
-    return ((imgsize(@_), '-WIDTH', '-HEIGHT')[2, 0, 3, 1]);
+    my @args = imgsize(@_);
+
+    return ((defined $args[0]) ?
+            (('-WIDTH', '-HEIGHT', imgsize(@_))[0, 2, 1, 3]) :
+            undef);
 }
 
 # This used only in gifsize:
@@ -394,7 +399,8 @@ sub gifsize
         {
             if (&img_eof($stream))
             {
-                return (-1, "Invalid/Corrupted GIF (at EOF in GIF $type)");
+                return (undef, undef,
+                        "Invalid/Corrupted GIF (at EOF in GIF $type)");
             }
             $lbuf = &$read_in($stream, 1);        # Block size
             last if ord($lbuf) == 0;     # Block terminator
@@ -405,7 +411,7 @@ sub gifsize
     $type = &$read_in($stream, 6);
     if (length($buf = &$read_in($stream, 7)) != 7 )
     {
-        return (-1, "Invalid/Corrupted GIF (bad header)");
+        return (undef, undef, "Invalid/Corrupted GIF (bad header)");
     }
     ($x) = unpack("x4 C", $buf);
     if ($x & 0x80)
@@ -413,7 +419,8 @@ sub gifsize
         $cmapsize = 3 * (2**(($x & 0x07) + 1));
         if (! &$read_in($stream, $cmapsize))
         {
-            return (-1, "Invalid/Corrupted GIF (global color map too small?)");
+            return (undef, undef,
+                    "Invalid/Corrupted GIF (global color map too small?)");
         }
     }
 
@@ -422,7 +429,7 @@ sub gifsize
     {
         if (&img_eof($stream))
         {
-            return (-1,
+            return (undef, undef,
                     "Invalid/Corrupted GIF (at EOF w/o Image Descriptors)");
         }
         $buf = &$read_in($stream, 1);
@@ -432,7 +439,8 @@ sub gifsize
             # Image Descriptor (GIF87a, GIF89a 20.c.i)
             if (length($buf = &$read_in($stream, 8)) != 8)
             {
-                return (-1, "Invalid/Corrupted GIF (missing image header?)");
+                return (undef, undef,
+                        "Invalid/Corrupted GIF (missing image header?)");
             }
             ($x, $w, $y, $h) = unpack("x4 C4", $buf);
             $x += $w * 256;
@@ -472,19 +480,21 @@ sub gifsize
                 }
                 else
                 {
-                    return (-1, sprintf("Invalid/Corrupted GIF (Unknown " .
-                                        "extension %#x)", $x));
+                    return (undef, undef,
+                            sprintf("Invalid/Corrupted GIF (Unknown " .
+                                    "extension %#x)", $x));
                 }
             }
             else
             { 
-                return (-1, sprintf("Invalid/Corrupted GIF (Unknown " .
-                                    "code %#x)", $x));
+                return (undef, undef,
+                        sprintf("Invalid/Corrupted GIF (Unknown code %#x)",
+                                $x));
             }
         }
         else
         {
-            return (-1,
+            return (undef, undef,
                     "Invalid/Corrupted GIF (missing GIF87a Image Descriptor)");
         }
     } 
@@ -495,15 +505,16 @@ sub xbmsize
     my $stream = shift;
 
     my $input;
-    my ($x, $y) = (-1, "Could not determine XBM size");
+    my ($x, $y, $id) = (undef, undef, "Could not determine XBM size");
     
     $input = &$read_in($stream, 160);
     if ($input =~ /^\#define\s*\S*\s*(\d*)\s*\n\#define\s*\S*\s*(\d*)\s*\n/moi)
     {
         ($x, $y) = ($1, $2);
+        $id = 'XBM';
     }
 
-    ($x, $y, 'XBM');
+    ($x, $y, $id);
 }
 
 # Added by Randy J. Ray, 30 Jul 1996
@@ -515,16 +526,17 @@ sub xpmsize
     my $stream = shift;
 
     my $line;
-    my ($x, $y) = (-1, "Could not determine XPM size");
+    my ($x, $y, $id) = (undef, undef, "Could not determine XPM size");
 
     while ($line = &$read_in($stream, 1024))
     {
         next unless ($line =~ /"(\d+)\s+(\d+)\s+\d+\s+\d+"/mo);
         ($x, $y) = ($1, $2);
+        $id = 'XPM';
         last;
     }
 
-    return ($x, $y, 'XPM');
+    ($x, $y, $id);
 }
 
 
@@ -536,7 +548,7 @@ sub pngsize
 {
     my $stream = shift;
 
-    my ($x, $y) = (-1, "could not determine PNG size");
+    my ($x, $y, $id) = (undef, undef, "could not determine PNG size");
     my ($offset, $length);
 
     # Offset to first Chunk Type code = 8-byte ident + 4-byte chunk length + 1
@@ -546,9 +558,10 @@ sub pngsize
         # IHDR = Image Header
         $length = 8;
         ($x, $y) = unpack("NN", &$read_in($stream, $length));
+        $id = 'PNG';
     }
 
-    ($x, $y, 'PNG');
+    ($x, $y, $id);
 }
 
 # jpegsize: gets the width and height (in pixels) of a jpeg file
@@ -565,7 +578,7 @@ sub jpegsize
     my $SIZE_FIRST  = 0xC0;         # Range of segment identifier codes
     my $SIZE_LAST   = 0xC3;         #  that hold size info.
 
-    my ($x, $y) = (-1, "could not determine JPEG size");
+    my ($x, $y, $id) = (undef, undef, "could not determine JPEG size");
 
     my ($marker, $code, $length);
     my $segheader;
@@ -584,13 +597,12 @@ sub jpegsize
         if ($marker ne $MARKER)
         {
             # Was it there?
-            $y = "JPEG marker not found";
-            $x = -1;
+            $id = "JPEG marker not found";
             last;
-            # Segments that contain size info
         }
         elsif ((ord($code) >= $SIZE_FIRST) && (ord($code) <= $SIZE_LAST))
         {
+            # Segments that contain size info
             $length = 5;
             ($y, $x) = unpack("xnn", &$read_in($stream, $length));
             last;
@@ -602,7 +614,7 @@ sub jpegsize
         }
     }
 
-    ($x, $y, 'JPG');
+    ($x, $y, $id);
 }
 
 # ppmsize: gets data on the PPM/PGM/PBM family.
@@ -612,17 +624,18 @@ sub ppmsize
 {
     my $stream = shift;
 
-    my ($x, $y) = (-1, "Unable to determine size of PPM/PGM/PBM data");
-    my $id;
+    my ($x, $y, $id) = (undef, undef,
+                        "Unable to determine size of PPM/PGM/PBM data");
+    my $n;
 
     my $header = &$read_in($stream, 64);
 
     # PPM file of some sort
     $header =~ s/^\#.*//mg;
-    ($id, $x, $y) = ($header =~ /^(P[1-6])\s+(\d+)\s+(\d+)/mo);
-    $id = "PBM" if $id eq "P1" || $id eq "P4";
-    $id = "PGM" if $id eq "P2" || $id eq "P5";
-    $id = "PPM" if $id eq "P3" || $id eq "P6";
+    ($n, $x, $y) = ($header =~ /^(P[1-6])\s+(\d+)\s+(\d+)/mo);
+    $id = "PBM" if $n eq "P1" || $n eq "P4";
+    $id = "PGM" if $n eq "P2" || $n eq "P5";
+    $id = "PPM" if $n eq "P3" || $n eq "P6";
 
     ($x, $y, $id);
 }
