@@ -1,12 +1,22 @@
-# http://module-build.sourceforge.net/META-spec.html
-#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
-name:         Image-Size
-version:      3.0
-version_from: Size.pm
-installdirs:  site
+---
+name: Image-Size
+version: 3.01
+author:
+  - 'Randy J. Ray <rjray@blackperl.com>'
+abstract: A library to extract height/width from images
+license: artistic
+resources:
+  license: http://opensource.org/licenses/artistic-license.php
 requires:
-    File::Spec:                    0
-    Test::More:                    0
-
-distribution_type: module
-generated_by: ExtUtils::MakeMaker version 6.30
+  File::Spec: 0
+  perl: 5.6.0
+build_requires:
+  Test::More: 0
+provides:
+  Image::Size:
+    file: lib/Image/Size.pm
+    version: 3.01
+generated_by: Module::Build version 0.2805
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.2.html
+  version: 1.2
