@@ -1,9 +1,12 @@
 ###############################################################################
 #
-# This file copyright (c) 2000 by Randy J. Ray, all rights reserved
+# This file copyright (c) 2007 by Randy J. Ray, all rights reserved
 #
 # Copying and distribution are permitted under the terms of the Artistic
-# License as distributed with Perl versions 5.005 and later.
+# License 2.0 (http://www.opensource.org/licenses/artistic-license-2.0.php) or
+# the GNU LGPL (http://www.opensource.org/licenses/lgpl-license.php).
+#
+# $Id: Size.pm 129 2007-10-04 10:37:59Z  $
 #
 ###############################################################################
 #
@@ -11,7 +14,7 @@
 # Knowles, alex@ed.ac.uk. Since then, even I barely recognize it. It has
 # contributions, fixes, additions and enhancements from all over the world.
 #
-# See the file README for change history.
+# See the file ChangeLog for change history.
 #
 ###############################################################################
 
@@ -39,7 +42,7 @@ BEGIN
                       $GIF_BEHAVIOR);
     %EXPORT_TAGS = ('all' => [ @EXPORT_OK ]);
 
-    $VERSION = "3.01";
+    $VERSION = "3.1";
 
     # Default behavior for GIFs is to return the "screen" size
     $GIF_BEHAVIOR = 0;
@@ -659,6 +662,18 @@ documentation and source by Philip Newton I<Philip.Newton@datenrevision.de>
 found several typos and a small buglet. Ville Skyttä I<(ville.skytta@iki.fi)>
 provided the MNG and the Image::Magick fallback code.
 
+=head1 COPYRIGHT
+
+This module and the code within are copyright (c) 2007 by Randy J. Ray. Some
+sections may have copyright assigned to other authors, as indicated in the
+in-line documentation.
+
+=head1 LICENSE
+
+Copying and distribution are permitted under the terms of the Artistic
+License 2.0 (L<http://www.opensource.org/licenses/artistic-license-2.0.php>) or
+the GNU LGPL (L<http://www.opensource.org/licenses/lgpl-license.php>).
+
 =cut
 
 1;
@@ -1128,7 +1143,8 @@ sub swfmxsize
     my $ver = _bin2int(unpack 'B8', substr($header, 3, 1));
 
     my ($d, $status) = Compress::Zlib::inflateInit();
-    $header = $d->inflate(substr($header, 8, 1024));
+    $header = substr($header, 8, 1024);
+    $header = $d->inflate($header);
 
     my $bs = unpack 'B133', substr($header, 0, 9);
     my $bits = _bin2int(substr($bs, 0, 5));
