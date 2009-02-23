@@ -1,30 +1,30 @@
-Build.PL				Module::Build controller
-ChangeLog				Change history
-MANIFEST				This file
+ChangeLog
+ChangeLog.xml
+etc/ChangeLogML.xsd
+ex/make_gallery.pl
+imgsize
+lib/Image/Size.pm
+MANIFEST			This list of files
 MANIFEST.SKIP
-Makefile.PL				MM template
-README					Description and details
-README.Win32				Special considerations for Win NT/95/98
-ex/make_gallery.pl                      Example script using Image::Size
-imgsize   				Utility script
-lib/Image/Size.pm			the code
-t/00_signature.t			test suite
-t/all.t
-t/magick.t
-t/pod.t
-t/pod_coverage.t
-t/letter_T.jpg				Support files for tests
-t/pak38.jpg
-t/test.gif
-t/spacer50.xbm
-t/xterm.bmp
-t/xterm.xpm
-t/pass-1_s.png
-t/letter_N.ppm
-t/lexjdic.tif
-t/bexjdic.tif
-t/yasp.swf
+README
+t/00_signature.t
 t/468x60.psd
 t/8.swf
+t/all.t
+t/bexjdic.tif
+t/letter_N.ppm
+t/letter_T.jpg
+t/lexjdic.tif
+t/magick.t
+t/pak38.jpg
+t/pass-1_s.png
+t/pod.t
+t/pod_coverage.t
+t/spacer50.xbm
+t/test.gif
+t/xterm.bmp
+t/xterm.xpm
+t/yasp.swf
+Makefile.PL
 META.yml
 SIGNATURE    Added here by Module::Build
