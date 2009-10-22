@@ -5,6 +5,28 @@
 		in a wide variety of common (and not-so-common) 
 		formats.                                        
 
+3.210	Wednesday October 21, 2009, 06:50:00 PM -0700
+
+	* t/magick.t
+	Removed a stray colon causing errors with some Perl versions.   
+
+	* t/00_load.t (added)
+	* t/00_signature.t (deleted)
+	* t/01_pod.t (added)
+	* t/02_pod_coverage.t (added)
+	* t/03_meta.t (added)
+	* t/04_minimumversion.t (added)
+	* t/05_critic.t (added)
+	* t/magick.t
+	* t/pod.t (deleted)
+	* t/pod_coverage.t (deleted)
+	Removed useless signature test, added QA tests, removed a       
+	duplicate test.                                                 
+
+	* lib/Image/Size.pm
+	Moved around some conditionally-needed libs to delay loading    
+	until/unless needed. Also made a small fix per Perl::Critic.    
+
 3.2	Monday February 23, 2009, 05:00:00 AM -0800
 
 	* lib/Image/Size.pm
@@ -482,9 +504,9 @@
 	* t/all.t (added)
 	Initial commit of the core project files.                       
 
-# Generated on Monday February 23, 2009, 04:57:01 AM -0800
-# Using changelog2x/0.10, App::Changelog2x/0.10, XML::LibXML/1.69,             
-# XML::LibXSLT/1.68, libxml/2.6.31, libxslt/1.1.22 (with exslt)                
+# Generated on Wednesday October 21, 2009, 08:37:35 PM -0700
+# Using changelog2x/0.11, App::Changelog2x/0.11, XML::LibXML/1.70,             
+# XML::LibXSLT/1.70, libxml/2.6.32, libxslt/1.1.24 (with exslt)                
 # XSLT sources:
 #     $Id: changelog2text.xslt 8 2009-01-19 06:46:50Z rjray $
 #     $Id: common-text.xslt 8 2009-01-19 06:46:50Z rjray $

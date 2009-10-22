@@ -7,7 +7,13 @@ lib/Image/Size.pm
 MANIFEST			This list of files
 MANIFEST.SKIP
 README
-t/00_signature.t
+README.textile
+t/00_load.t
+t/01_pod.t
+t/02_pod_coverage.t
+t/03_meta.t
+t/04_minimumversion.t
+t/05_critic.t
 t/468x60.psd
 t/8.swf
 t/all.t
@@ -18,8 +24,6 @@ t/lexjdic.tif
 t/magick.t
 t/pak38.jpg
 t/pass-1_s.png
-t/pod.t
-t/pod_coverage.t
 t/spacer50.xbm
 t/test.gif
 t/xterm.bmp
