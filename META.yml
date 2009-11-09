@@ -1,6 +1,6 @@
 ---
 name: Image-Size
-version: 3.210
+version: 3.220
 author:
   - 'Randy J. Ray <rjray@blackperl.com>'
 abstract: A library to extract height/width from images
@@ -23,7 +23,7 @@ configure_requires:
 provides:
   Image::Size:
     file: lib/Image/Size.pm
-    version: 3.210
+    version: 3.220
 generated_by: Module::Build version 0.35
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
