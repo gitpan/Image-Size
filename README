@@ -1,7 +1,7 @@
 Image::Size - Determine the size of images in several common formats
 ====================================================================
 
-Version: 3.220 (See CHANGES below)
+Version: 3.221 (See CHANGES below)
 
 
 WHAT IS IT
@@ -78,6 +78,9 @@ Please send any reports of problems or bugs to rjray@blackperl.com.
 CHANGES
 -------
 
+  * imgsize
+
   * lib/Image/Size.pm
 
-Small fix to the regex for detecting GIFs, per Slaven Rezic.
+Large-scale code and documentation clean-up based on perlcritic and visual
+review.
