@@ -16,7 +16,7 @@ name: Image-Size
 provides:
   Image::Size:
     file: lib/Image/Size.pm
-    version: 3.221
+    version: 3.230
 recommends:
   Compress::Zlib: 2
 requires:
@@ -27,4 +27,4 @@ resources:
   homepage: http://search.cpan.org/dist/Image-Size
   license: http://dev.perl.org/licenses/
   repository: http://github.com/rjray/image-size
-version: 3.221
+version: 3.230

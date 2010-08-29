@@ -1,7 +1,7 @@
 Image::Size - Determine the size of images in several common formats
 ====================================================================
 
-Version: 3.221 (See CHANGES below)
+Version: 3.230 (See CHANGES below)
 
 
 WHAT IS IT
@@ -82,5 +82,38 @@ CHANGES
 
   * lib/Image/Size.pm
 
-Large-scale code and documentation clean-up based on perlcritic and visual
-review.
+perlcritic clean-ups from new rules.
+
+  * lib/Image/Size.pm
+
+  * t/Test_emf_small.emf (added)
+
+  * t/all.t
+
+RT #59995: Added support for Windows Enhanced Metafile Format (EMF).
+
+  * t/00_load.t (deleted)
+
+  * t/01_pod.t (deleted)
+
+  * t/02_pod_coverage.t (deleted)
+
+  * t/03_meta.t (deleted)
+
+  * t/04_minimumversion.t (deleted)
+
+  * t/05_critic.t (deleted)
+
+  * xt/00_load.t (added)
+
+  * xt/01_pod.t (added)
+
+  * xt/02_pod_coverage.t (added)
+
+  * xt/03_meta.t (added)
+
+  * xt/04_minimumversion.t (added)
+
+  * xt/05_critic.t (added)
+
+Move the author/distro-sanity tests to an "xt" directory.
