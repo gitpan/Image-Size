@@ -5,6 +5,33 @@
 		in a wide variety of common (and not-so-common) 
 		formats.                                        
 
+3.231	Wednesday May 23, 2012, 11:30:00 PM -0700
+
+	* lib/Image/Size.pm
+	Small change to swfmxsize for short-buffer issues.              
+
+	* lib/Image/Size.pm
+	Multiple changes in this commit: Abandoned AutoLoader; moved    
+	POD to the end of the file now that all the per-format          
+	subroutines are part of the file-proper; fixed cases where lack 
+	of ImageMagick would cause the error message to be overwritten. 
+
+	* t/all.t
+	* t/kazeburo-bar.jpg (added)
+	New test (and image) for JPG tag-offset issue.                  
+
+	* lib/Image/Size.pm
+	Applied patch from github user kazeburo: bug fix for some jpeg  
+	files                                                           
+
+	* imgsize
+	Fixed so that default output now catches errors. Previously,    
+	you would get an "undefined" warning if there was an error in   
+	parsing/sizing the input file.                                  
+
+	* lib/Image/Size.pm
+	Turns out the 4 bounding-box ints for EMF are signed.           
+
 3.230	Sunday August 29, 2010, 04:00:00 PM -0700
 
 	* imgsize
@@ -542,9 +569,9 @@
 	* t/all.t (added)
 	Initial commit of the core project files.                       
 
-# Generated on Sunday August 29, 2010, 03:54:48 PM -0700
-# Using changelog2x/0.11, App::Changelog2x/0.11, XML::LibXML/1.70,             
-# XML::LibXSLT/1.70, libxml/2.7.6, libxslt/1.1.26 (with exslt)                 
+# Generated on Wednesday May 23, 2012, 11:24:15 PM -0700
+# Using changelog2x/0.11, App::Changelog2x/0.11, XML::LibXML/1.96,             
+# XML::LibXSLT/1.77, libxml/2.7.3, libxslt/1.1.24 (with exslt)                 
 # XSLT sources:
 #     $Id: changelog2text.xslt 8 2009-01-19 06:46:50Z rjray $
 #     $Id: common-text.xslt 8 2009-01-19 06:46:50Z rjray $

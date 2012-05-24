@@ -12,6 +12,7 @@ t/468x60.psd
 t/8.swf
 t/all.t
 t/bexjdic.tif
+t/kazeburo-bar.jpg
 t/letter_N.ppm
 t/letter_T.jpg
 t/lexjdic.tif
@@ -32,3 +33,4 @@ xt/04_minimumversion.t
 xt/05_critic.t
 Makefile.PL
 META.yml
+META.json
