@@ -1,7 +1,7 @@
 Image::Size - Determine the size of images in several common formats
 ====================================================================
 
-Version: 3.231 (See CHANGES below)
+Version: 3.232 (See CHANGES below)
 
 
 WHAT IS IT
@@ -80,30 +80,5 @@ CHANGES
 
   * lib/Image/Size.pm
 
-Small change to swfmxsize for short-buffer issues.
-
-  * lib/Image/Size.pm
-
-Multiple changes in this commit: Abandoned AutoLoader; moved POD to the end of
-the file now that all the per-format subroutines are part of the file-proper;
-fixed cases where lack of ImageMagick would cause the error message to be
-overwritten.
-
-  * t/all.t
-
-  * t/kazeburo-bar.jpg (added)
-
-New test (and image) for JPG tag-offset issue.
-
-  * lib/Image/Size.pm
-
-Applied patch from github user kazeburo: bug fix for some jpeg files
-
-  * imgsize
-
-Fixed so that default output now catches errors. Previously, you would get an
-"undefined" warning if there was an error in parsing/sizing the input file.
-
-  * lib/Image/Size.pm
-
-Turns out the 4 bounding-box ints for EMF are signed.
+Removed the "!" flag in pack template for EMF. It was not needed and it broke on
+earlier Perls.

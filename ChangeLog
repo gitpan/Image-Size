@@ -5,6 +5,12 @@
 		in a wide variety of common (and not-so-common) 
 		formats.                                        
 
+3.232	Monday May 28, 2012, 05:20:00 PM -0700
+
+	* lib/Image/Size.pm
+	Removed the "!" flag in pack template for EMF. It was not       
+	needed and it broke on earlier Perls.                           
+
 3.231	Wednesday May 23, 2012, 11:30:00 PM -0700
 
 	* lib/Image/Size.pm
@@ -569,7 +575,7 @@
 	* t/all.t (added)
 	Initial commit of the core project files.                       
 
-# Generated on Wednesday May 23, 2012, 11:24:15 PM -0700
+# Generated on Monday May 28, 2012, 05:23:22 PM -0700
 # Using changelog2x/0.11, App::Changelog2x/0.11, XML::LibXML/1.96,             
 # XML::LibXSLT/1.77, libxml/2.7.3, libxslt/1.1.24 (with exslt)                 
 # XSLT sources:
